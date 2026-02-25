@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>✦ tarot_signal ✦</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600&family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root {
+  --void: #08040f;
+  --plum: #1a0830;
+  --amethyst: #6b2fa0;
+  --violet: #9b59b6;
+  --lavender: #c39bd3;
+  --moonlight: #e8d5f5;
+  --star: #f5ecff;
+  --gold: #d4af37;
+  --gold-soft: #f0d060;
+  --love: #e080a0;
+  --career: #80c0e8;
+  --money: #80d4a0;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family:'Crimson Pro',serif;
+  background:var(--void);
+  color:var(--moonlight);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── Cosmos ── */
+.cosmos {
+  position:fixed; inset:0; z-index:0;
+  background:
+    radial-gradient(ellipse at 15% 20%, rgba(107,47,160,0.38) 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 80%, rgba(70,10,120,0.45) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 50%, rgba(25,8,48,0.7) 0%, transparent 70%),
+    #08040f;
+}
+.nebula { position:fixed; border-radius:50%; filter:blur(90px); opacity:0.12; pointer-events:none; animation:ndrift 20s ease-in-out infinite alternate; }
+.n1 { width:560px; height:560px; background:radial-gradient(#9b59b6,#3a006a); top:-130px; left:-130px; }
+.n2 { width:460px; height:460px; background:radial-gradient(#c850f0,#520080); bottom:-110px; right:-110px; animation-delay:-10s; }
+.n3 { width:300px; height:300px; background:radial-gradient(#9070c0,#1a0830); top:40%; left:40%; animation-delay:-6s; }
+@keyframes ndrift { 0%{transform:translate(0,0) scale(1);} 100%{transform:translate(28px,20px) scale(1.1);} }
+.star-sparkle { position:fixed; width:2px; height:2px; background:#fff; border-radius:50%; animation:twinkle var(--dur,3s) ease-in-out infinite var(--delay,0s); }
+@keyframes twinkle { 0%,100%{opacity:.1;transform:scale(1);} 50%{opacity:1;transform:scale(2.2);box-shadow:0 0 5px 2px rgba(200,180,255,.7);} }
+
+/* ── Layout ── */
+.app { position:relative; z-index:1; min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:0 16px 80px; }
+
+/* ── Header ── */
+header { text-align:center; padding:44px 20px 16px; width:100%; }
+.halo { font-size:12px; letter-spacing:8px; color:var(--gold); opacity:.65; margin-bottom:8px; animation:glow 3s ease-in-out infinite alternate; }
+@keyframes glow { from{opacity:.35;} to{opacity:.9;} }
+h1 {
+  font-family:'Cinzel Decorative',cursive;
+  font-size:clamp(19px,5.5vw,34px);
+  background:linear-gradient(135deg, var(--gold) 0%, var(--star) 50%, var(--lavender) 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  letter-spacing:1px; line-height:1.2;
+}
+h1::after { content:''; display:block; width:55%; height:1px; background:linear-gradient(90deg,transparent,var(--gold),transparent); margin:12px auto 0; }
+.subtitle { font-size:12px; font-style:italic; color:var(--lavender); letter-spacing:3px; margin-top:8px; opacity:.7; }
+
+/* ── Draw section ── */
+.draw-section { display:flex; flex-direction:column; align-items:center; gap:13px; margin:12px 0 28px; }
+.draw-btn { background:transparent; border:none; cursor:pointer; padding:0; outline:none; }
+.draw-btn-inner {
+  display:flex; align-items:center; gap:10px;
+  background:linear-gradient(135deg,rgba(107,47,160,.35),rgba(26,8,48,.88));
+  border:1px solid rgba(195,155,211,.35); border-radius:50px;
+  padding:15px 34px;
+  font-family:'Cinzel Decorative',cursive; font-size:14px;
+  color:var(--moonlight); letter-spacing:2px;
+  transition:all .3s;
+  box-shadow:0 0 28px rgba(107,47,160,.22), inset 0 1px 0 rgba(255,255,255,.07);
+}
+.draw-btn:hover .draw-btn-inner, .draw-btn:active .draw-btn-inner {
+  background:linear-gradient(135deg,rgba(155,89,182,.55),rgba(107,47,160,.88));
+  border-color:var(--gold);
+  box-shadow:0 0 50px rgba(155,89,182,.45), 0 0 18px rgba(212,175,55,.3);
+  transform:translateY(-2px); color:var(--gold-soft);
+}
+.draw-hint { font-size:12px; color:var(--lavender); opacity:.5; letter-spacing:2px; font-style:italic; }
+
+/* ── Card 3D stage ── */
+.card-stage { width:100%; max-width:340px; margin:0 auto; perspective:1200px; }
+.card-flipper {
+  width:220px; height:385px; margin:0 auto; position:relative;
+  transform-style:preserve-3d;
+  transition:transform .85s cubic-bezier(.645,.045,.355,1);
+}
+.card-flipper.flipped { transform:rotateY(180deg); }
+.card-face {
+  position:absolute; inset:0; border-radius:16px;
+  backface-visibility:hidden; -webkit-backface-visibility:hidden;
+  box-shadow:0 20px 55px rgba(0,0,0,.7), 0 0 35px rgba(107,47,160,.28), inset 0 1px 0 rgba(255,255,255,.1);
+}
+
+/* Card BACK */
+.card-back {
+  background:linear-gradient(160deg,#220840,#110720,#1a0535);
+  display:flex; align-items:center; justify-content:center;
+  border:1.5px solid rgba(195,155,211,.22);
+  overflow:hidden;
+}
+.card-back-design {
+  width:88%; height:88%;
+  border:1px solid rgba(195,155,211,.16); border-radius:10px;
+  display:flex; align-items:center; justify-content:center; flex-direction:column; gap:10px;
+  background:
+    repeating-linear-gradient(45deg,rgba(107,47,160,.035) 0,rgba(107,47,160,.035) 1px,transparent 1px,transparent 18px),
+    repeating-linear-gradient(-45deg,rgba(107,47,160,.035) 0,rgba(107,47,160,.035) 1px,transparent 1px,transparent 18px);
+  position:relative;
+}
+.back-symbol {
+  font-size:52px;
+  filter:drop-shadow(0 0 18px rgba(195,155,211,.75));
+  animation:float 4s ease-in-out infinite;
+}
+.back-text { font-family:'Cinzel Decorative',cursive; font-size:9px; letter-spacing:4px; color:var(--lavender); opacity:.5; }
+@keyframes float { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-8px);} }
+
+/* Card FRONT — text-only design */
+.card-front {
+  transform:rotateY(180deg);
+  display:flex; flex-direction:column; align-items:center;
+  justify-content:center; overflow:hidden;
+  border:1.5px solid var(--gold);
+  position:relative;
+}
+/* per-suit background */
+.card-front.suit-major { background:linear-gradient(165deg,#1e0840,#0d0520,#200a3a); }
+.card-front.suit-wands { background:linear-gradient(165deg,#1e0c28,#0d0418,#2a1008); }
+.card-front.suit-cups  { background:linear-gradient(165deg,#0c1a2e,#050e1c,#1a0830); }
+.card-front.suit-swords{ background:linear-gradient(165deg,#0c1020,#050810,#1a0a28); }
+.card-front.suit-pents { background:linear-gradient(165deg,#0a1c14,#040e0a,#1a0830); }
+
+/* Corner ornaments */
+.card-front::before, .card-front::after {
+  content:'✦';
+  position:absolute;
+  font-size:10px;
+  color:var(--gold);
+  opacity:.4;
+}
+.card-front::before { top:12px; left:12px; }
+.card-front::after  { bottom:12px; right:12px; }
+
+.cf-inner { display:flex; flex-direction:column; align-items:center; gap:0; padding:24px 16px; width:100%; }
+.cf-top-ornament { font-size:9px; letter-spacing:4px; color:var(--gold); opacity:.4; margin-bottom:14px; }
+.cf-glyph {
+  font-size:52px; line-height:1;
+  margin-bottom:12px;
+  filter:drop-shadow(0 0 16px currentColor);
+}
+.suit-major .cf-glyph { color:var(--lavender); }
+.suit-wands .cf-glyph { color:#e8a060; }
+.suit-cups  .cf-glyph { color:#7ab4e0; }
+.suit-swords.cf-glyph { color:#b0c8e8; }
+.suit-pents .cf-glyph { color:#7ad4a0; }
+.suit-swords .cf-glyph { color:#b0c8e8; }
+
+.cf-num {
+  font-family:'Cinzel',serif; font-size:11px;
+  letter-spacing:4px; color:var(--gold); opacity:.65;
+  margin-bottom:8px;
+}
+.cf-name {
+  font-family:'Cinzel Decorative',cursive;
+  font-size:clamp(11px,3.2vw,14px);
+  color:var(--star);
+  text-align:center; line-height:1.35;
+  margin-bottom:8px; letter-spacing:.5px;
+}
+.cf-suit {
+  font-size:10px; letter-spacing:3px;
+  color:var(--lavender); opacity:.5;
+  text-transform:uppercase; margin-bottom:14px;
+}
+.cf-rev-badge {
+  background:rgba(155,59,182,.35);
+  border:1px solid rgba(195,155,211,.35);
+  font-size:9px; padding:2px 8px; border-radius:10px;
+  color:var(--lavender); letter-spacing:1px;
+  font-family:'Crimson Pro',serif;
+}
+.cf-mid-line {
+  width:60%; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(212,175,55,.4),transparent);
+  margin:4px 0 10px;
+}
+.cf-bottom-ornament { font-size:9px; letter-spacing:4px; color:var(--gold); opacity:.35; }
+
+/* ── Particles ── */
+.particles-wrap { position:absolute; inset:0; pointer-events:none; overflow:hidden; border-radius:16px; }
+.particle { position:absolute; width:3px; height:3px; border-radius:50%; animation:pburst .9s ease-out forwards; }
+@keyframes pburst { 0%{transform:translate(0,0) scale(1);opacity:1;} 100%{transform:translate(var(--tx),var(--ty)) scale(0);opacity:0;} }
+
+/* ── Reading Result ── */
+.reading-result { width:100%; max-width:390px; margin:28px auto 0; opacity:0; transform:translateY(20px); transition:all .55s ease .3s; }
+.reading-result.visible { opacity:1; transform:translateY(0); }
+
+.result-card {
+  background:linear-gradient(158deg,rgba(28,10,50,.97),rgba(14,6,26,.98));
+  border:1px solid rgba(195,155,211,.2); border-radius:20px;
+  overflow:hidden;
+  box-shadow:0 12px 44px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.04);
+}
+.result-card::before { content:''; display:block; height:1px; background:linear-gradient(90deg,transparent,var(--amethyst),transparent); }
+
+.rc-head { padding:20px 22px 16px; }
+.rc-arcana { font-size:9px; letter-spacing:4px; color:var(--gold); opacity:.6; text-transform:uppercase; margin-bottom:4px; }
+.rc-name { font-family:'Cinzel Decorative',cursive; font-size:clamp(17px,5vw,22px); color:var(--star); line-height:1.25; }
+.rc-rev-tag { display:inline-block; background:rgba(107,47,160,.3); border:1px solid rgba(195,155,211,.3); font-size:11px; padding:3px 10px; border-radius:18px; color:var(--lavender); letter-spacing:1px; margin-top:6px; }
+.rc-divider { height:1px; background:linear-gradient(90deg,transparent,rgba(195,155,211,.22),transparent); margin:0 22px; }
+
+/* keywords */
+.rc-keys { display:flex; flex-wrap:wrap; gap:7px; padding:14px 22px; }
+.kw { background:rgba(107,47,160,.2); border:1px solid rgba(195,155,211,.17); border-radius:18px; padding:4px 11px; font-size:12px; color:var(--lavender); }
+
+/* Fortune sections */
+.fortune-sections { padding:4px 0 20px; }
+.fortune-item { padding:12px 22px 14px; border-bottom:1px solid rgba(195,155,211,.08); }
+.fortune-item:last-child { border-bottom:none; }
+
+.fi-header { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.fi-icon { font-size:16px; }
+.fi-title { font-family:'Cinzel',serif; font-size:10px; letter-spacing:3px; opacity:.75; text-transform:uppercase; }
+.fi-title.love    { color:var(--love); }
+.fi-title.career  { color:var(--career); }
+.fi-title.money   { color:var(--money); }
+
+.fi-text { font-size:14.5px; line-height:1.78; color:var(--moonlight); font-weight:300; }
+.fi-rev {
+  margin-top:8px; padding-top:8px;
+  border-top:1px dashed rgba(195,155,211,.15);
+  font-size:13px; line-height:1.7; color:var(--lavender); font-style:italic; font-weight:300; opacity:.82;
+}
+.fi-rev-label { font-size:10px; letter-spacing:2px; color:var(--gold); opacity:.5; display:block; margin-bottom:3px; }
+
+/* ── Share panel ── */
+.share-panel { margin-top:22px; display:flex; flex-direction:column; gap:11px; }
+.share-ttl { font-size:10px; letter-spacing:4px; color:var(--lavender); opacity:.4; text-align:center; text-transform:uppercase; }
+.share-btns { display:flex; gap:10px; justify-content:center; }
+.share-btn {
+  flex:1; max-width:155px; background:transparent;
+  border:1px solid rgba(195,155,211,.25); border-radius:50px;
+  padding:11px 14px; color:var(--moonlight);
+  font-family:'Cinzel Decorative',cursive; font-size:11px; letter-spacing:1px;
+  cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px;
+  transition:all .3s;
+}
+.share-btn:hover { background:rgba(107,47,160,.28); border-color:var(--amethyst); box-shadow:0 0 18px rgba(107,47,160,.28); }
+.share-btn:active { transform:scale(.97); }
+
+/* ── Toast ── */
+.toast {
+  position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(16px);
+  background:rgba(26,8,48,.97); border:1px solid rgba(195,155,211,.32); border-radius:28px;
+  padding:11px 22px; font-size:13px; color:var(--moonlight); letter-spacing:1px;
+  opacity:0; transition:all .3s; z-index:200; white-space:nowrap;
+  backdrop-filter:blur(12px);
+}
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ── Capture target (off-screen for save) ── */
+#ct {
+  position:fixed; left:-9999px; top:0; width:360px;
+  background:linear-gradient(160deg,#0a0612,#1e0b35,#110920);
+  padding:28px 22px; font-family:'Crimson Pro',serif; color:var(--moonlight); z-index:-1;
+}
+#ct .ct-head { text-align:center; margin-bottom:18px; }
+#ct .ct-sn { font-family:'Cinzel Decorative',cursive; font-size:16px; background:linear-gradient(135deg,#d4af37,#f5ecff,#c39bd3); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+#ct .ct-card-box {
+  margin:0 auto 18px; width:180px; height:60px;
+  background:linear-gradient(135deg,#220840,#1a0535);
+  border:1.5px solid #d4af37; border-radius:10px;
+  display:flex; align-items:center; justify-content:center; flex-direction:column; gap:2px;
+}
+#ct .ct-cname { font-family:'Cinzel Decorative',cursive; font-size:11px; color:#f5ecff; text-align:center; letter-spacing:.5px; }
+#ct .ct-csub  { font-size:9px; letter-spacing:3px; color:#c39bd3; opacity:.6; text-transform:uppercase; }
+#ct .ct-rev   { font-size:9px; color:var(--lavender); opacity:.7; text-align:center; margin-top:3px; }
+#ct .ct-keys  { display:flex; flex-wrap:wrap; gap:5px; justify-content:center; margin-bottom:14px; }
+#ct .ct-k     { background:rgba(107,47,160,.4); border:1px solid rgba(195,155,211,.3); border-radius:14px; padding:2px 9px; font-size:11px; color:#c39bd3; }
+#ct .ct-section { margin-bottom:10px; }
+#ct .ct-stitle{ font-size:9px; letter-spacing:3px; opacity:.55; margin-bottom:4px; }
+#ct .ct-stitle.love   { color:var(--love); }
+#ct .ct-stitle.career { color:var(--career); }
+#ct .ct-stitle.money  { color:var(--money); }
+#ct .ct-stext { font-size:12px; line-height:1.65; color:#e8d5f5; }
+#ct .ct-foot  { text-align:center; margin-top:18px; font-size:9px; letter-spacing:3px; color:#6b2fa0; opacity:.55; }
+</style>
+</head>
+<body>
+<div class="cosmos"></div>
+<div class="nebula n1"></div>
+<div class="nebula n2"></div>
+<div class="nebula n3"></div>
+
+<div class="app">
+  <header>
+    <div class="halo">✦ ✦ ✦</div>
+    <h1>tarot_signal</h1>
+    <p class="subtitle">Universal Waite Tarot Reading</p>
+  </header>
+
+  <div class="draw-section">
+    <button class="draw-btn" onclick="drawCard()">
+      <div class="draw-btn-inner"><span>✦</span> 카드 뽑기 <span>✦</span></div>
+    </button>
+    <p class="draw-hint">마음속으로 질문을 담고 카드를 뽑으세요</p>
+  </div>
+
+  <!-- Card flip stage -->
+  <div class="card-stage">
+    <div style="position:relative;">
+      <div class="card-flipper" id="flipper">
+        <!-- BACK -->
+        <div class="card-face card-back">
+          <div class="card-back-design">
+            <div class="back-symbol">✦</div>
+            <div class="back-text">TAROT</div>
+          </div>
+        </div>
+        <!-- FRONT (text-only) -->
+        <div class="card-face card-front suit-major" id="cardFront">
+          <div class="cf-inner">
+            <div class="cf-top-ornament">✦ ✦ ✦</div>
+            <div class="cf-glyph" id="cfGlyph">✦</div>
+            <div class="cf-mid-line"></div>
+            <div class="cf-num" id="cfNum">—</div>
+            <div class="cf-name" id="cfName">—</div>
+            <div class="cf-suit" id="cfSuit">—</div>
+            <div id="cfRevBadge"></div>
+            <div class="cf-bottom-ornament">✦ ✦ ✦</div>
+          </div>
+        </div>
+      </div>
+      <div class="particles-wrap" id="particles"></div>
+    </div>
+  </div>
+
+  <!-- Result section -->
+  <div class="reading-result" id="result">
+    <div class="result-card">
+      <div class="rc-head">
+        <div class="rc-arcana" id="rArcana">— ARCANA —</div>
+        <div class="rc-name" id="rName">카드를 뽑아주세요</div>
+        <div id="rRevTag"></div>
+      </div>
+      <div class="rc-divider"></div>
+      <div class="rc-keys" id="rKeys"></div>
+      <div class="rc-divider"></div>
+      <div class="fortune-sections" id="fortuneSections">
+        <div style="padding:20px 22px; font-size:14px; color:var(--lavender); opacity:.6; font-style:italic;">
+          마음속에 질문을 품고 위의 카드 덱을 눌러보세요.
+        </div>
+      </div>
+    </div>
+
+    <div class="share-panel" id="sharePanel" style="display:none">
+      <div class="share-ttl">✦ Share Your Reading ✦</div>
+      <div class="share-btns">
+        <button class="share-btn" onclick="saveImg()"><span>💾</span> 저장</button>
+        <button class="share-btn" onclick="shareIt()"><span>🔗</span> 공유</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Off-screen capture for image save -->
+<div id="ct">
+  <div class="ct-head"><div class="ct-sn">✦ tarot_signal ✦</div></div>
+  <div class="ct-card-box">
+    <div class="ct-cname" id="ctCname"></div>
+    <div class="ct-csub" id="ctCsub"></div>
+  </div>
+  <div class="ct-rev" id="ctRev"></div>
+  <div class="ct-keys" id="ctKeys"></div>
+  <div class="ct-section"><div class="ct-stitle love">💕 연애운</div><div class="ct-stext" id="ctLove"></div></div>
+  <div class="ct-section"><div class="ct-stitle career">📋 관운</div><div class="ct-stext" id="ctCareer"></div></div>
+  <div class="ct-section"><div class="ct-stitle money">💰 재물운</div><div class="ct-stext" id="ctMoney"></div></div>
+  <div class="ct-foot">✦ tarot_signal READING ✦</div>
+</div>
+
+<script>
+/* ── Twinkling stars ── */
+[[8,12],[22,38],[38,7],[54,58],[68,22],[84,43],[13,68],[89,73],[33,83],[58,90],
+ [4,52],[73,8],[46,33],[91,28],[19,88],[28,18],[63,53],[47,77],[79,13],[2,38],
+ [51,50],[17,25],[72,65],[40,95],[82,30],[55,18],[36,62],[66,85],[12,45],[94,55]]
+.forEach(([x,y])=>{
+  const s=document.createElement('div'); s.className='star-sparkle';
+  s.style.cssText=`left:${x}%;top:${y}%;--dur:${1.8+Math.random()*3.2}s;--delay:-${Math.random()*5}s`;
+  document.body.appendChild(s);
+});
+
+/* ══════════════════════════════════════════════
+   TAROT DATA
+   각 카드: n(이름), a(아르카나), num(번호),
+   k(키워드), suit(수트 CSS 클래스), glyph(앞면 심볼)
+   love / career / money: { u(정방향), r(역방향) }
+══════════════════════════════════════════════ */
+const TAROT = [
+
+/* ── MAJOR ARCANA ── */
+{n:'The Fool', a:'Major Arcana', num:'0', suit:'suit-major', glyph:'✦',
+ k:['새출발','자유','순수','모험'],
+ love:{u:'새로운 만남 또는 설레는 감정의 시작. 두려움 없이 마음을 열면 예상치 못한 인연이 찾아옵니다.',r:'충동적인 행동이 관계에 상처를 줄 수 있습니다. 감정에 앞서 상대를 충분히 이해하는 시간이 필요합니다.'},
+ career:{u:'새로운 도전이나 직종 변경의 씨앗이 뿌려집니다. 경험 없어도 용기 있게 첫 발을 내딛을 때입니다.',r:'준비 없이 시작한 일이 혼란을 부를 수 있습니다. 계획을 다시 점검한 뒤 행동하세요.'},
+ money:{u:'소규모 투자나 새로운 재정 출발에 좋은 기운입니다. 가벼운 마음으로 시작하되 과도한 지출은 삼가세요.',r:'충동 소비 또는 준비 없는 투자로 손실이 생길 수 있습니다. 재무 계획을 먼저 세우세요.'}},
+
+{n:'The Magician', a:'Major Arcana', num:'I', suit:'suit-major', glyph:'⚚',
+ k:['의지','창조','스킬','집중'],
+ love:{u:'강한 매력과 의사소통 능력으로 상대방의 마음을 끌 수 있습니다. 먼저 마음을 표현하면 관계가 진전됩니다.',r:'조작적인 언행이나 과도한 자기중심적 태도가 관계를 해칩니다. 진정성을 먼저 회복하세요.'},
+ career:{u:'보유한 모든 기술과 자원을 활용할 수 있는 절호의 시기입니다. 아이디어를 실행으로 옮기세요.',r:'재능을 낭비하거나 집중력이 흩어져 있습니다. 한 가지 목표에 에너지를 모으는 것이 먼저입니다.'},
+ money:{u:'능력과 노력이 수익으로 연결되는 시기입니다. 여러 재원을 효율적으로 활용하면 좋은 결과가 나옵니다.',r:'사기나 부정한 방법으로 이익을 추구할 유혹이 생길 수 있습니다. 정직한 방법을 고수하세요.'}},
+
+{n:'The High Priestess', a:'Major Arcana', num:'II', suit:'suit-major', glyph:'☽',
+ k:['직관','신비','내면','지혜'],
+ love:{u:'말보다 직관이 안내합니다. 상대방의 숨은 감정을 느낄 수 있는 민감한 시기—조용히 기다리면 진실이 드러납니다.',r:'비밀이나 감정 억압이 관계를 가로막고 있습니다. 솔직한 대화가 필요한 때입니다.'},
+ career:{u:'소문보다 내면의 통찰을 따르세요. 아직 드러나지 않은 정보가 있으니 결정을 서두르지 마세요.',r:'직관을 무시하고 표면만 보다가 기회를 놓칠 수 있습니다. 행동 전에 충분히 숙고하세요.'},
+ money:{u:'겉으로 보이는 것보다 내면의 가치를 보는 안목이 재물을 지킵니다. 섣불리 움직이지 말고 정보를 더 모으세요.',r:'숨겨진 재무 리스크가 있을 수 있습니다. 계약서나 조건을 꼼꼼히 검토하세요.'}},
+
+{n:'The Empress', a:'Major Arcana', num:'III', suit:'suit-major', glyph:'♀',
+ k:['풍요','창조성','자연','모성'],
+ love:{u:'사랑과 애정이 넘치는 따뜻한 시기. 관계가 더욱 깊어지거나 임신·결혼 같은 새로운 단계로 나아갈 수 있습니다.',r:'의존성이 높아지거나 과보호로 인해 관계가 숨막힐 수 있습니다. 각자의 공간을 존중하세요.'},
+ career:{u:'창의적인 프로젝트나 예술적 작업이 빛을 발하는 시기입니다. 풍요로운 결실을 맺을 환경이 갖춰졌습니다.',r:'창의적 에너지가 막혀있거나 과잉 의존으로 생산성이 떨어집니다. 자립적인 행동이 필요합니다.'},
+ money:{u:'투자한 것들이 서서히 결실을 맺기 시작합니다. 장기적인 자산 성장과 안정적인 수입 흐름이 강화됩니다.',r:'과도한 지출이나 물질적 풍요에 대한 집착이 생길 수 있습니다. 소비 습관을 점검하세요.'}},
+
+{n:'The Emperor', a:'Major Arcana', num:'IV', suit:'suit-major', glyph:'♄',
+ k:['권위','안정','구조','리더십'],
+ love:{u:'안정적이고 헌신적인 관계의 토대가 만들어집니다. 파트너에게 안전감과 신뢰를 줄 수 있는 때입니다.',r:'지나치게 통제적이거나 감정 표현이 부족해 파트너가 답답함을 느낄 수 있습니다.'},
+ career:{u:'리더십을 발휘하여 조직을 이끌 기회가 옵니다. 체계적인 접근으로 목표를 달성할 수 있습니다.',r:'권위주의적 태도나 융통성 부족이 팀워크를 해칩니다. 다른 사람의 의견에도 귀를 기울이세요.'},
+ money:{u:'규율 있는 재정 관리가 안정적인 자산을 만들어냅니다. 장기 계획에 따른 저축·투자가 결실을 맺습니다.',r:'고집스러운 재정 결정이나 변화 거부로 기회를 놓칠 수 있습니다. 전략을 재검토하세요.'}},
+
+{n:'The Hierophant', a:'Major Arcana', num:'V', suit:'suit-major', glyph:'☩',
+ k:['전통','믿음','스승','관습'],
+ love:{u:'결혼·약혼 등 공식적인 관계 발전에 좋은 시기입니다. 전통적인 방식으로 사랑을 표현하면 상대방이 감동합니다.',r:'형식과 관습에 지나치게 얽매여 감정적 연결이 희박해질 수 있습니다. 솔직함이 더 중요합니다.'},
+ career:{u:'멘토나 스승의 도움으로 성장할 수 있습니다. 조직의 규칙을 지키며 신뢰를 쌓는 것이 장기적으로 유리합니다.',r:'기존 방식에 갇혀 성장이 멈출 수 있습니다. 새로운 접근법이나 시스템을 열린 마음으로 받아들이세요.'},
+ money:{u:'검증된 전통적인 투자 방법이나 안정적인 금융 상품이 가장 적합한 시기입니다.',r:'시대에 뒤처진 재정 습관이 기회를 막을 수 있습니다. 현대적인 금융 지식을 업데이트하세요.'}},
+
+{n:'The Lovers', a:'Major Arcana', num:'VI', suit:'suit-major', glyph:'♥',
+ k:['사랑','선택','조화','가치관'],
+ love:{u:'깊은 감정적 연결과 함께 중요한 선택의 순간이 옵니다. 진심을 따르는 결정이 관계를 아름답게 만듭니다.',r:'가치관 충돌이나 우유부단한 태도가 관계에 불안을 줍니다. 자신이 진정으로 원하는 것이 무엇인지 먼저 파악하세요.'},
+ career:{u:'직업적 파트너십이나 협업이 빛을 발하는 시기입니다. 자신의 가치관과 일치하는 방향을 선택하세요.',r:'선택 기로에서 갈등을 겪고 있습니다. 단기 이익보다 장기적 가치를 기준으로 결정하세요.'},
+ money:{u:'공동 투자나 재정 파트너십에서 좋은 결과가 기대됩니다. 신뢰할 수 있는 사람과 함께하세요.',r:'재정 결정에서 감정이 판단을 흐리게 할 수 있습니다. 냉정하게 숫자를 바탕으로 판단하세요.'}},
+
+{n:'The Chariot', a:'Major Arcana', num:'VII', suit:'suit-major', glyph:'⚔',
+ k:['의지','승리','통제','추진력'],
+ love:{u:'관계에서 주도권을 가지고 적극적으로 나아가는 시기입니다. 목표한 관계를 향해 의지 있게 행동하세요.',r:'지나친 통제욕이나 감정적 갈등이 관계를 혼란에 빠뜨릴 수 있습니다. 유연함이 필요합니다.'},
+ career:{u:'도전과 경쟁에서 승리할 수 있는 강한 추진력이 있습니다. 집중하고 달려나가면 목표를 달성합니다.',r:'방향을 잃거나 과도한 경쟁심이 번아웃을 부를 수 있습니다. 페이스를 조절하는 것이 중요합니다.'},
+ money:{u:'능동적인 재정 관리와 과감한 결정이 좋은 성과를 냅니다. 지금이 행동할 때입니다.',r:'충동적인 결정이나 무리한 투자로 손실이 생길 수 있습니다. 전략을 먼저 세우세요.'}},
+
+{n:'Strength', a:'Major Arcana', num:'VIII', suit:'suit-major', glyph:'∞',
+ k:['용기','내면의 힘','인내','온유'],
+ love:{u:'부드러움과 인내로 관계를 지탱하는 시기입니다. 갈등이 있어도 차분하게 대화하면 더 깊은 신뢰가 쌓입니다.',r:'자기 의심이나 두려움이 사랑을 가로막고 있습니다. 내면의 강인함을 믿고 마음을 여세요.'},
+ career:{u:'어렵고 힘든 상황에서도 끝까지 버텨내는 힘이 빛을 발합니다. 두려움이 아닌 자신감으로 행동하세요.',r:'내면의 갈등이나 자기 불신이 성과를 방해합니다. 스스로를 다독이며 회복 탄력성을 키우세요.'},
+ money:{u:'안정적이고 꾸준한 노력으로 재정적 어려움을 극복할 수 있습니다. 포기하지 않으면 반드시 결실이 옵니다.',r:'불안감에서 비롯된 충동 소비나 과도한 절약이 오히려 불균형을 만들 수 있습니다.'}},
+
+{n:'The Hermit', a:'Major Arcana', num:'IX', suit:'suit-major', glyph:'⊙',
+ k:['고독','성찰','내면 탐구','지혜'],
+ love:{u:'혼자만의 시간을 통해 진정으로 원하는 관계가 무엇인지 명확해집니다. 자기 자신을 먼저 알아야 진정한 인연이 옵니다.',r:'지나친 고립이나 은둔으로 새로운 인연을 차단하고 있습니다. 적당히 문을 열어두세요.'},
+ career:{u:'혼자 깊이 집중하는 전문가적 작업에서 두각을 나타낼 수 있습니다. 내적 통찰이 큰 자산이 됩니다.',r:'지나치게 혼자 일하려 해서 협업 기회를 놓칠 수 있습니다. 때로는 도움을 요청하세요.'},
+ money:{u:'신중하고 분석적인 접근으로 현명한 재정 결정을 내릴 수 있습니다. 겉모습보다 본질을 파악하세요.',r:'과도한 신중함이 좋은 기회를 놓치게 할 수 있습니다. 적당한 위험은 감수해도 됩니다.'}},
+
+{n:'Wheel of Fortune', a:'Major Arcana', num:'X', suit:'suit-major', glyph:'⊕',
+ k:['변화','운명','행운','순환'],
+ love:{u:'예상치 못한 좋은 변화가 관계에 찾아옵니다. 흐름을 믿고 새로운 가능성에 마음을 열세요.',r:'불안정한 시기—관계가 갑작스럽게 변할 수 있습니다. 외부 요인에 흔들리지 않도록 중심을 잡으세요.'},
+ career:{u:'운이 따르는 시기입니다. 기회가 빠르게 오고 가니 적극적으로 움켜잡으세요.',r:'예상치 못한 방해물이나 환경 변화로 계획이 어긋날 수 있습니다. 유연하게 대처하세요.'},
+ money:{u:'재운이 높은 시기입니다. 긍정적인 변화와 예상치 못한 수입 기회가 올 수 있습니다.',r:'재정적 불안정이나 손실 가능성이 있습니다. 리스크 관리에 집중하세요.'}},
+
+{n:'Justice', a:'Major Arcana', num:'XI', suit:'suit-major', glyph:'⚖',
+ k:['공정','진실','균형','결과'],
+ love:{u:'솔직함과 공정한 태도가 관계를 건강하게 만듭니다. 과거의 노력이 지금 결실로 돌아오는 시기입니다.',r:'불균형한 관계 또는 정직하지 못한 행동이 갈등을 일으킬 수 있습니다. 진심을 먼저 회복하세요.'},
+ career:{u:'노력에 걸맞은 정당한 보상이 따라옵니다. 공정하게 행동하면 좋은 평판을 얻습니다.',r:'불공정한 대우를 받거나 자신의 실수가 드러날 수 있습니다. 책임을 받아들이는 것이 최선입니다.'},
+ money:{u:'신중한 계약과 공정한 거래가 안정적인 재정을 만듭니다. 계약서를 꼼꼼히 검토하세요.',r:'법적 또는 재정적 문제가 발생할 수 있습니다. 조급하게 결정하지 말고 전문가 조언을 구하세요.'}},
+
+{n:'The Hanged Man', a:'Major Arcana', num:'XII', suit:'suit-major', glyph:'⌇',
+ k:['희생','기다림','새로운 시각','수용'],
+ love:{u:'지금은 기다림의 시간입니다. 억지로 밀어붙이지 않고 상대방의 페이스를 기다리면 관계가 자연스럽게 발전합니다.',r:'기다리는 것에 지쳐 관계를 포기하려 할 수 있습니다. 마무리가 필요한지 진지하게 생각해보세요.'},
+ career:{u:'잠시 멈추고 다른 각도에서 상황을 바라보세요. 지금 내려놓는 것이 더 큰 것을 얻는 지름길입니다.',r:'불필요한 희생이 계속되고 있습니다. 자신의 가치를 제대로 인정받지 못하는 상황을 직시하세요.'},
+ money:{u:'단기 수익보다 장기 투자를 선택하는 것이 현명합니다. 조급함을 내려놓으면 더 좋은 기회가 옵니다.',r:'재정적 교착상태에 빠질 수 있습니다. 새로운 관점으로 자금 흐름을 재검토하세요.'}},
+
+{n:'Death', a:'Major Arcana', num:'XIII', suit:'suit-major', glyph:'☽',
+ k:['변환','종결','전환','새시작'],
+ love:{u:'관계의 낡은 패턴이 끝나고 새로운 형태의 사랑이 시작됩니다. 변화를 두려워하지 말고 받아들이세요.',r:'끝내야 할 관계를 억지로 붙잡고 있습니다. 서로를 위해 놓아주는 용기가 필요할 수 있습니다.'},
+ career:{u:'낡은 직업이나 환경이 끝나고 더 나은 기회가 기다립니다. 전환이 두렵더라도 새로운 문을 향해 나아가세요.',r:'필요한 변화를 거부하면서 성장이 막히고 있습니다. 무엇을 버려야 하는지 직면하세요.'},
+ money:{u:'기존의 재정 습관이나 손실 나는 투자를 과감히 정리할 때입니다. 새로운 재정 전략을 수립하세요.',r:'재정적 손실이나 예상치 못한 지출이 발생할 수 있습니다. 변화에 미리 대비하세요.'}},
+
+{n:'Temperance', a:'Major Arcana', num:'XIV', suit:'suit-major', glyph:'⌖',
+ k:['균형','절제','인내','조화'],
+ love:{u:'서두르지 않고 천천히 쌓아가는 관계가 가장 아름답습니다. 인내와 중용으로 감정을 조율하세요.',r:'불균형한 감정 기복이나 과잉 반응이 관계를 흔들 수 있습니다. 차분히 호흡을 고르세요.'},
+ career:{u:'급하게 결과를 바라지 말고 꾸준히 나아가면 반드시 결실이 옵니다. 다양한 역할 조화가 강점입니다.',r:'초조함이나 극단적인 선택이 문제를 키울 수 있습니다. 한 걸음씩 차분하게 접근하세요.'},
+ money:{u:'균형 있는 재정 관리—저축과 투자, 소비의 균형이 장기적인 안정을 만들어냅니다.',r:'과소비나 과도한 긴축 둘 중 하나로 치우칠 수 있습니다. 중간 지점을 찾는 것이 중요합니다.'}},
+
+{n:'The Devil', a:'Major Arcana', num:'XV', suit:'suit-major', glyph:'⛧',
+ k:['속박','집착','물질','그림자'],
+ love:{u:'강렬한 열정과 매력이 있지만 건강하지 않은 집착으로 발전할 위험이 있습니다. 관계의 경계를 점검하세요.',r:'독성적인 관계에서 벗어날 힘이 생깁니다. 자신을 얽매던 감정의 사슬을 끊을 용기를 내세요.'},
+ career:{u:'물질적 성공에 집중하는 시기지만 윤리적 선을 넘지 않도록 주의하세요. 지나친 야심은 양날의 검입니다.',r:'업무 중독이나 독성적인 직장 환경에서 해방될 기회가 옵니다. 진정한 동기를 되찾으세요.'},
+ money:{u:'단기적 수익이 눈앞에 보이지만 장기적 리스크를 무시하지 마세요. 탐욕보다 현명함을 선택하세요.',r:'부채나 재정적 집착에서 벗어나기 시작합니다. 건강한 소비 패턴을 만들어갈 때입니다.'}},
+
+{n:'The Tower', a:'Major Arcana', num:'XVI', suit:'suit-major', glyph:'⚡',
+ k:['붕괴','급변','각성','혼란'],
+ love:{u:'갑작스러운 충격이나 진실이 드러나며 관계가 크게 흔들릴 수 있습니다. 하지만 이것이 더 진실한 관계의 시작이 될 수도 있습니다.',r:'내부에 쌓인 문제들이 폭발하기 전에 먼저 해결하려는 노력이 필요합니다.'},
+ career:{u:'예상치 못한 변화나 조직 변동이 올 수 있습니다. 충격적이더라도 이 변화가 결국 성장의 발판이 됩니다.',r:'잠재적 위기가 서서히 다가오고 있습니다. 사전에 대비하면 피해를 최소화할 수 있습니다.'},
+ money:{u:'갑작스러운 재정적 손실이나 구조 변화가 있을 수 있습니다. 비상금을 마련해두는 것이 중요합니다.',r:'재정 위기가 고조되기 전에 빠르게 구조 조정을 시작하세요. 전문가의 도움을 구하세요.'}},
+
+{n:'The Star', a:'Major Arcana', num:'XVII', suit:'suit-major', glyph:'★',
+ k:['희망','치유','영감','신뢰'],
+ love:{u:'상처가 치유되고 새로운 희망이 피어납니다. 밝고 순수한 사랑이 다가오거나 현재 관계가 더욱 아름다워집니다.',r:'실망이나 희망 상실로 마음의 문이 닫혀 있습니다. 자신을 향한 믿음을 먼저 회복하세요.'},
+ career:{u:'영감과 창의적 에너지가 넘치는 시기입니다. 꿈을 향한 장기 목표를 세우기에 가장 좋은 때입니다.',r:'이상이 너무 높아 현실적인 진전이 느릴 수 있습니다. 작은 목표부터 차근차근 달성해나가세요.'},
+ money:{u:'재정적으로 긍정적인 전환점이 가까이 있습니다. 지금까지의 노력이 서서히 결실로 나타나기 시작합니다.',r:'비현실적인 재정 기대가 실망으로 이어질 수 있습니다. 현실적인 목표로 조정하세요.'}},
+
+{n:'The Moon', a:'Major Arcana', num:'XVIII', suit:'suit-major', glyph:'☽',
+ k:['환상','두려움','무의식','혼란'],
+ love:{u:'감정이 복잡하고 불분명한 시기입니다. 보이는 것만 믿지 말고 상대방의 진심을 더 깊이 파악하려 하세요.',r:'혼란이 서서히 걷히고 관계의 진실이 명확해집니다. 두려움을 극복하면 새로운 국면이 시작됩니다.'},
+ career:{u:'정보나 상황이 불분명하여 판단이 어렵습니다. 결정을 서두르지 말고 진실이 드러날 때를 기다리세요.',r:'오해나 소통 부재가 해소되기 시작합니다. 명확한 커뮤니케이션이 모든 것을 해결합니다.'},
+ money:{u:'투자나 거래에서 숨겨진 정보가 있을 수 있습니다. 계약이나 투자 전에 전문가의 검토를 반드시 받으세요.',r:'재정적 불확실성이 해소되기 시작합니다. 그동안 흐릿했던 재무 상황이 명확해집니다.'}},
+
+{n:'The Sun', a:'Major Arcana', num:'XIX', suit:'suit-major', glyph:'☀',
+ k:['기쁨','성공','활력','낙관'],
+ love:{u:'관계에 행복과 따뜻함이 가득합니다. 긍정적인 에너지가 넘쳐 새로운 만남이나 기존 관계의 발전이 기대됩니다.',r:'일시적인 낙관으로 문제를 직면하지 않으려 할 수 있습니다. 기쁨과 현실감각을 함께 유지하세요.'},
+ career:{u:'성공과 인정이 따르는 빛나는 시기입니다. 자신감을 갖고 적극적으로 나아가면 모든 것이 잘 풀립니다.',r:'성공에 자만하거나 준비 없이 도전하면 실망이 따를 수 있습니다. 겸손함을 유지하세요.'},
+ money:{u:'재운이 매우 좋은 시기입니다. 수입 증가나 투자 성과 등 긍정적인 재정 소식이 기다립니다.',r:'일시적 성공에 방심하지 마세요. 지속적인 관리와 절약이 장기 재정 안정의 기반입니다.'}},
+
+{n:'Judgement', a:'Major Arcana', num:'XX', suit:'suit-major', glyph:'☆',
+ k:['각성','갱생','심판','부름'],
+ love:{u:'과거의 상처를 용서하고 관계를 새롭게 시작할 기회가 찾아옵니다. 내면의 부름에 따라 결단을 내리세요.',r:'과거에 얽매여 앞으로 나아가지 못하고 있습니다. 자신을 용서하고 해방시키는 것이 먼저입니다.'},
+ career:{u:'중요한 결단이나 커리어 전환의 순간입니다. 내면의 목소리가 이끄는 방향으로 과감히 움직이세요.',r:'자기 비판이 지나쳐 결정을 내리지 못하고 있습니다. 완벽하지 않아도 시작하는 것이 중요합니다.'},
+ money:{u:'재정적인 결단의 시기입니다. 오래된 재정 습관을 점검하고 새로운 전략을 채택할 절호의 기회입니다.',r:'재정적 실수나 후회를 반복하고 있습니다. 전문가와 함께 재정 구조를 처음부터 다시 정비하세요.'}},
+
+{n:'The World', a:'Major Arcana', num:'XXI', suit:'suit-major', glyph:'⊛',
+ k:['완성','통합','성취','순환'],
+ love:{u:'관계가 완전한 조화와 충만함에 이릅니다. 깊은 이해와 사랑으로 이루어진 아름다운 결실의 시기입니다.',r:'마지막 한 걸음을 내딛지 못해 완성을 미루고 있습니다. 두려움을 내려놓고 마무리하세요.'},
+ career:{u:'커다란 목표를 달성하는 완성의 시기입니다. 지금까지의 노력이 인정받고 새로운 도전의 문이 열립니다.',r:'마지막 단계에서 완수를 미루고 있습니다. 끝맺음이 새로운 시작의 열쇠임을 기억하세요.'},
+ money:{u:'재정적 완성과 안정의 시기입니다. 오랜 노력 끝에 목표한 자산이나 재정적 자유에 가까워집니다.',r:'아직 완전한 재정 안정에 이르지 못했습니다. 남은 과제를 하나씩 완료해나가세요.'}},
+
+/* ── WANDS ── */
+{n:'Ace of Wands', a:'Wands', num:'Ace', suit:'suit-wands', glyph:'🔥',
+ k:['시작','창의','영감','열정'],
+ love:{u:'새로운 감정의 불꽃이 점화됩니다. 설레는 새 만남이나 기존 관계의 열정이 다시 살아납니다.',r:'초기 열정이 빠르게 식거나 시작이 지연됩니다. 감정의 진실성을 먼저 확인하세요.'},
+ career:{u:'창의적 아이디어와 열정으로 새 프로젝트를 시작할 최적의 시기입니다. 지금 행동하세요.',r:'창의 에너지가 막혀 있거나 시작을 자꾸 미루고 있습니다. 작은 것부터라도 행동에 옮기세요.'},
+ money:{u:'새로운 수입원이나 사업 아이디어가 생겨날 가능성이 높습니다. 가능성을 탐색해보세요.',r:'재정적 시작이 지연되고 있습니다. 아이디어는 좋지만 실행력이 부족한 상태입니다.'}},
+
+{n:'Two of Wands', a:'Wands', num:'II', suit:'suit-wands', glyph:'🌍',
+ k:['계획','비전','진보','파트너십'],
+ love:{u:'관계를 미래지향적으로 바라보는 시기입니다. 장기적인 계획을 파트너와 함께 논의하세요.',r:'관계의 방향성에 대한 불확실함이 있습니다. 두려움보다 가능성에 초점을 맞추세요.'},
+ career:{u:'장기 목표와 전략을 세우기에 좋은 시기입니다. 더 큰 세계로 나아갈 준비를 하세요.',r:'계획만 세우고 행동이 따르지 않습니다. 완벽한 준비보다 일단 시작하는 것이 더 중요합니다.'},
+ money:{u:'수익이 되는 장기 투자나 사업 확장을 계획할 때입니다. 전략적 사고가 재물을 만듭니다.',r:'재정 계획이 지나치게 이상적이거나 실행이 늦어지고 있습니다. 현실적인 단계로 나누어 진행하세요.'}},
+
+{n:'Three of Wands', a:'Wands', num:'III', suit:'suit-wands', glyph:'⛵',
+ k:['확장','탐험','전망','기다림'],
+ love:{u:'이미 씨앗을 뿌렸습니다. 관계의 결실이 서서히 돌아오는 시기—기다리는 인내가 아름다운 사랑을 만듭니다.',r:'기다림에 지쳐 포기하려는 마음이 생깁니다. 방향이 맞다면 조금만 더 기다려보세요.'},
+ career:{u:'일의 결과가 서서히 나타나기 시작합니다. 더 넓은 시장이나 영역으로 확장을 고려해보세요.',r:'기대했던 성과가 늦게 나타나 조급해지고 있습니다. 전략을 재점검하며 인내하세요.'},
+ money:{u:'투자한 것들이 서서히 결실을 맺기 시작합니다. 아직 완전하지 않지만 긍정적인 징조가 보입니다.',r:'수익이 늦게 나타나 불안이 생깁니다. 장기적 관점을 유지하고 결과를 믿으세요.'}},
+
+{n:'Four of Wands', a:'Wands', num:'IV', suit:'suit-wands', glyph:'🎊',
+ k:['축하','안정','귀향','성취'],
+ love:{u:'관계의 안정과 기쁨을 축하하는 시기입니다. 결혼이나 동거 등 공식적인 관계 진전에 매우 좋은 운입니다.',r:'외적 안정 뒤에 해결되지 않은 내부 갈등이 있을 수 있습니다. 기쁨이 진짜인지 확인하세요.'},
+ career:{u:'프로젝트 완료나 목표 달성을 축하할 만한 시기입니다. 팀과 함께 기쁨을 나누세요.',r:'성취가 완전하지 않아 찝찝함이 남을 수 있습니다. 미완의 부분을 마무리 짓는 것에 집중하세요.'},
+ money:{u:'재정적 안정의 기반이 확립됩니다. 지금까지의 노력에 대한 보상이 느껴지는 좋은 시기입니다.',r:'일시적인 안정에 안주하지 마세요. 더 탄탄한 재정 기반을 위한 다음 단계를 계획하세요.'}},
+
+{n:'Five of Wands', a:'Wands', num:'V', suit:'suit-wands', glyph:'⚔',
+ k:['경쟁','갈등','도전','투쟁'],
+ love:{u:'의견 충돌이나 갈등이 있지만 이것이 관계를 더 단단하게 만드는 과정입니다. 건설적인 대화가 핵심입니다.',r:'불필요한 갈등을 피하고 협력을 선택하세요. 싸움보다 합의가 더 좋은 결과를 냅니다.'},
+ career:{u:'경쟁이 치열하지만 이것이 능력을 키울 기회입니다. 당당히 자신의 가치를 증명하세요.',r:'갈등을 피하려다 중요한 입장을 잃을 수 있습니다. 필요할 때는 자신을 지킬 목소리를 내세요.'},
+ money:{u:'재정적 경쟁이나 협상에서 자신의 이익을 적극적으로 주장해야 하는 시기입니다.',r:'재정 갈등이 소진적으로 이어지고 있습니다. 협상을 통해 합리적인 타협점을 찾으세요.'}},
+
+{n:'Six of Wands', a:'Wands', num:'VI', suit:'suit-wands', glyph:'🏆',
+ k:['승리','자신감','인정','성공'],
+ love:{u:'자신감 넘치는 모습이 상대방의 마음을 끕니다. 관계에서 리더십을 발휘하거나 공개적으로 사랑을 표현하기 좋은 때입니다.',r:'자만심이 관계에 균열을 만들 수 있습니다. 파트너의 기여도 충분히 인정해주세요.'},
+ career:{u:'노력이 공개적으로 인정받는 시기입니다. 프레젠테이션이나 발표에서 빛을 발합니다.',r:'인정받지 못하거나 기대했던 승진이 미뤄질 수 있습니다. 결과보다 과정에 집중하세요.'},
+ money:{u:'투자나 사업 성과가 드러나기 시작합니다. 그동안의 노력에 대한 공개적인 재정 보상이 따릅니다.',r:'성공이 일시적일 수 있습니다. 지금의 수익을 현명하게 관리하며 미래를 준비하세요.'}},
+
+{n:'Seven of Wands', a:'Wands', num:'VII', suit:'suit-wands', glyph:'🛡',
+ k:['수호','도전','지구력','입장'],
+ love:{u:'관계를 지키기 위해 외부의 압박이나 방해에 맞서야 할 때입니다. 소중한 것을 지키는 용기를 내세요.',r:'과도한 방어적 태도가 관계를 질식시킬 수 있습니다. 신뢰를 바탕으로 조금 문을 열어두세요.'},
+ career:{u:'경쟁자나 압박에도 불구하고 자신의 포지션을 지켜내세요. 버티는 힘이 결국 승리를 만듭니다.',r:'방어에 너무 많은 에너지를 쓰고 있습니다. 공격적인 성장보다 내실을 다지는 것이 필요합니다.'},
+ money:{u:'재산을 지키기 위한 적극적인 방어가 필요한 시기입니다. 리스크 헤지에 집중하세요.',r:'재정 보호에 너무 집착하면 성장 기회를 놓칩니다. 적당한 위험을 감수하는 것도 필요합니다.'}},
+
+{n:'Eight of Wands', a:'Wands', num:'VIII', suit:'suit-wands', glyph:'⚡',
+ k:['속도','행동','이동','진전'],
+ love:{u:'관계가 빠르게 진전됩니다. 감정 표현의 속도가 빨라지고 중요한 결정이 빠르게 이루어질 수 있습니다.',r:'관계가 너무 빠르게 진행되어 충분히 생각할 시간이 부족합니다. 잠깐 속도를 늦추세요.'},
+ career:{u:'빠른 행동이 요구되는 시기입니다. 지연하지 말고 기회가 왔을 때 즉시 움직이세요.',r:'서두름이 실수를 만들 수 있습니다. 빠르게 움직이더라도 핵심은 놓치지 마세요.'},
+ money:{u:'빠른 수익 실현이 가능한 시기입니다. 타이밍이 중요하니 시장 흐름을 예의주시하세요.',r:'충동적인 재정 결정으로 손실이 생길 수 있습니다. 빠른 결정 전에 한 번 더 점검하세요.'}},
+
+{n:'Nine of Wands', a:'Wands', num:'IX', suit:'suit-wands', glyph:'🏹',
+ k:['회복력','끈기','경계','방어'],
+ love:{u:'상처를 입었지만 관계를 포기하지 마세요. 아직 가능성이 남아 있습니다. 마지막 힘을 내어보세요.',r:'지나친 방어적 태도가 상대방을 밀어내고 있습니다. 경계는 필요하지만 너무 높은 벽은 외로움을 만듭니다.'},
+ career:{u:'지치더라도 마지막 단계가 가장 중요합니다. 포기하지 않는 끈기가 결국 결실을 만듭니다.',r:'번아웃 직전 상태입니다. 무리하기 전에 잠시 회복하는 시간이 반드시 필요합니다.'},
+ money:{u:'재정적으로 힘들지만 포기하면 안 됩니다. 조금만 더 버티면 상황이 개선됩니다.',r:'무리한 재정 방어로 정신적·신체적 소진이 오고 있습니다. 전략적 후퇴도 하나의 방법입니다.'}},
+
+{n:'Ten of Wands', a:'Wands', num:'X', suit:'suit-wands', glyph:'⚑',
+ k:['부담','과중','책임','완성'],
+ love:{u:'관계에서 너무 많은 것을 혼자 짊어지고 있지는 않나요? 파트너와 책임을 나누는 것이 필요합니다.',r:'짐을 내려놓기 시작할 때입니다. 관계에서 불필요한 의무감을 버리면 더 가벼워집니다.'},
+ career:{u:'과중한 업무를 안고 있지만 목표 지점이 바로 앞입니다. 효율적으로 위임하면 더 빨리 도달합니다.',r:'지나친 책임감에서 벗어나야 할 때입니다. 모든 것을 혼자 할 수 없다는 것을 인정하세요.'},
+ money:{u:'재정적 부담이 크지만 목표 달성에 가까워지고 있습니다. 불필요한 지출을 줄여 부담을 덜어내세요.',r:'재정적 과부하로 결국 무언가를 놓칠 수 있습니다. 우선순위를 재정비하여 핵심에 집중하세요.'}},
+
+/* ── CUPS ── */
+{n:'Ace of Cups', a:'Cups', num:'Ace', suit:'suit-cups', glyph:'💧',
+ k:['새로운 사랑','감정','직관','영감'],
+ love:{u:'새로운 감정의 문이 활짝 열립니다. 첫사랑 같은 순수한 감정이나 감동적인 재회가 기다리고 있습니다.',r:'감정을 억누르거나 공허함을 느끼고 있습니다. 마음의 문을 조금씩 열어보세요.'},
+ career:{u:'창의적 영감이 넘치는 시기입니다. 감성적 접근이 필요한 직종에서 특히 빛을 발합니다.',r:'감정 소진으로 업무 의욕이 떨어지고 있습니다. 내면의 에너지를 충전하는 시간이 필요합니다.'},
+ money:{u:'직관을 믿고 새로운 재정 기회에 마음을 여세요. 예상치 못한 행운이 찾아올 수 있습니다.',r:'감정적 결정이 재정 판단을 흐리게 할 수 있습니다. 냉정한 분석이 먼저입니다.'}},
+
+{n:'Two of Cups', a:'Cups', num:'II', suit:'suit-cups', glyph:'💑',
+ k:['연결','파트너십','상호 끌림','조화'],
+ love:{u:'두 사람 사이의 아름다운 화학 반응. 깊은 신뢰와 상호 이해로 관계가 더욱 성숙해집니다.',r:'감정의 불균형이나 소통 부재가 멀어짐을 만들고 있습니다. 진심을 나누는 대화가 필요합니다.'},
+ career:{u:'윈윈하는 파트너십이나 협업 관계가 만들어집니다. 신뢰를 바탕으로 함께 성장하세요.',r:'파트너와의 마찰이나 의견 불일치가 협업을 방해합니다. 공동 목표를 다시 확인하세요.'},
+ money:{u:'공동 투자나 비즈니스 파트너십에서 좋은 결과가 기대됩니다. 상호 이익이 되는 합의를 찾으세요.',r:'재정 파트너십에서 불균형이 생기고 있습니다. 계약 조건을 다시 검토하세요.'}},
+
+{n:'Three of Cups', a:'Cups', num:'III', suit:'suit-cups', glyph:'🥂',
+ k:['축하','우정','기쁨','공동체'],
+ love:{u:'사랑하는 사람들과 함께하는 기쁨의 시간. 관계 주변의 지지자들이 행복한 에너지를 더해줍니다.',r:'과도한 사교나 외부 관계로 인해 연인과의 시간이 소홀해질 수 있습니다. 균형을 맞추세요.'},
+ career:{u:'팀워크와 협업에서 빛나는 시기입니다. 동료들과의 유대가 업무 성과를 높여줍니다.',r:'직장 내 험담이나 파벌 형성이 문제가 될 수 있습니다. 중립을 지키는 것이 현명합니다.'},
+ money:{u:'공동 프로젝트나 커뮤니티 기반 수익 창출에 좋은 시기입니다. 네트워크를 적극 활용하세요.',r:'과도한 사교 지출이 재정에 부담이 될 수 있습니다. 소비를 점검하세요.'}},
+
+{n:'Four of Cups', a:'Cups', num:'IV', suit:'suit-cups', glyph:'☁',
+ k:['무관심','성찰','기회 놓침','명상'],
+ love:{u:'현재 관계나 새로운 만남에 무관심해지고 있습니다. 감사함을 되찾으면 눈앞의 소중한 인연이 보입니다.',r:'새로운 감정의 가능성에 눈을 뜨기 시작합니다. 열린 마음으로 주변을 살펴보세요.'},
+ career:{u:'업무에 권태를 느끼고 있습니다. 잠시 내면을 들여다보면 새로운 방향이 보일 수 있습니다.',r:'무기력에서 벗어나 새로운 기회에 적극적으로 반응하기 시작합니다. 행동할 때입니다.'},
+ money:{u:'재정적 만족을 잘 느끼지 못하는 상태입니다. 지금 가진 것에 감사하는 마음이 부를 불러옵니다.',r:'재정적 기회에 눈을 떠 적극적으로 행동하기 시작합니다. 타이밍을 놓치지 마세요.'}},
+
+{n:'Five of Cups', a:'Cups', num:'V', suit:'suit-cups', glyph:'💔',
+ k:['후회','상실','슬픔','실망'],
+ love:{u:'상실이나 실망이 있지만 아직 남아있는 소중한 것들을 보세요. 슬픔을 충분히 느끼되 멈추지 마세요.',r:'서서히 슬픔에서 회복되며 새로운 사랑의 가능성에 눈을 뜨기 시작합니다.'},
+ career:{u:'실패나 기대 이하의 결과에 낙담하고 있습니다. 남은 가능성에 집중하면 반전이 옵니다.',r:'좌절을 딛고 새로운 시작을 향해 나아갑니다. 경험이 더 큰 성공의 밑거름이 됩니다.'},
+ money:{u:'재정적 손실로 인한 상처가 있습니다. 잃은 것보다 남은 것을 기반으로 새 계획을 세우세요.',r:'재정 손실을 극복하고 회복의 궤도에 오르기 시작합니다. 포기하지 않은 것이 빛납니다.'}},
+
+{n:'Six of Cups', a:'Cups', num:'VI', suit:'suit-cups', glyph:'🌸',
+ k:['향수','추억','순수함','어린 시절'],
+ love:{u:'과거의 인연이나 첫사랑과 같은 순수한 감정이 다시 찾아올 수 있습니다. 추억이 현재에 온기를 줍니다.',r:'과거에 집착하여 현재의 좋은 관계를 제대로 보지 못하고 있습니다. 지금 곁에 있는 사람을 소중히 하세요.'},
+ career:{u:'과거의 경험이나 인맥이 현재 커리어에 도움이 됩니다. 오래된 인연을 다시 연락해보세요.',r:'과거의 직업 방식에 집착하여 변화에 적응하지 못하고 있습니다. 새로운 스킬을 익히세요.'},
+ money:{u:'옛날부터 알고 지낸 사람과의 비즈니스나 예상치 못한 상속·선물이 있을 수 있습니다.',r:'과거의 재정 실수를 반복하고 있습니다. 같은 패턴이 반복된다면 근본 원인을 찾아보세요.'}},
+
+{n:'Seven of Cups', a:'Cups', num:'VII', suit:'suit-cups', glyph:'✨',
+ k:['환상','선택','꿈','착각'],
+ love:{u:'수많은 가능성이 눈앞에 펼쳐지지만 일부는 환상일 수 있습니다. 상대방의 진짜 모습을 볼 수 있는 눈이 필요합니다.',r:'몽상에서 깨어나 현실적인 사랑을 받아들일 준비가 됩니다. 진짜를 선택할 때입니다.'},
+ career:{u:'다양한 기회가 있지만 분별력이 필요합니다. 겉보기에 화려한 것보다 실질적 가치를 보세요.',r:'선택 마비에서 벗어나 하나의 목표에 집중하기 시작합니다. 명확한 방향이 보이기 시작합니다.'},
+ money:{u:'투자 기회가 많지만 모두가 좋은 것은 아닙니다. 철저한 조사 없이 투자하지 마세요.',r:'재정적 망상에서 벗어나 현실적인 재정 계획을 세우기 시작합니다.'}},
+
+{n:'Eight of Cups', a:'Cups', num:'VIII', suit:'suit-cups', glyph:'🌙',
+ k:['이탈','더 깊은 의미','실망','탐색'],
+ love:{u:'더 이상 충분하지 않다는 감각이 옵니다. 더 깊은 감정적 연결을 찾아 나설 용기가 필요합니다.',r:'떠나야 할 관계를 두려움으로 붙잡고 있습니다. 놓아주는 것이 진정한 자유입니다.'},
+ career:{u:'현재 직업이나 상황이 더 이상 만족스럽지 않습니다. 더 의미 있는 방향으로 전환할 때가 왔습니다.',r:'변화를 두려워하며 불만족스러운 직장에 머무르고 있습니다. 진짜 원하는 것을 찾아보세요.'},
+ money:{u:'수익이 나더라도 의미를 찾지 못하고 있습니다. 재정 목표를 가치와 일치시키는 것이 필요합니다.',r:'재정적 안주함에서 벗어나 더 나은 기회를 찾아 나설 준비를 시작하세요.'}},
+
+{n:'Nine of Cups', a:'Cups', num:'IX', suit:'suit-cups', glyph:'⭐',
+ k:['소원 성취','만족','쾌락','행복'],
+ love:{u:'소원이 이루어지는 카드! 원하던 관계가 실현되거나 현재 관계에서 깊은 만족감을 느낍니다.',r:'표면적 행복 뒤에 진정한 만족이 없을 수 있습니다. 진짜 원하는 것이 무엇인지 물어보세요.'},
+ career:{u:'원하던 직업적 목표에 도달합니다. 성취감이 크고 자신의 능력을 마음껏 발휘할 수 있습니다.',r:'자기만족에 빠져 성장이 멈출 수 있습니다. 다음 단계의 목표를 세우세요.'},
+ money:{u:'재정적 소원이 이루어지는 시기입니다. 원했던 자산이나 수입 목표에 도달할 수 있습니다.',r:'물질적 풍요에 집착하면 진정한 행복을 놓칩니다. 돈 이외의 가치도 함께 추구하세요.'}},
+
+{n:'Ten of Cups', a:'Cups', num:'X', suit:'suit-cups', glyph:'🌈',
+ k:['행복','조화','가족','성취'],
+ love:{u:'감정적 완성과 가정의 행복. 사랑하는 사람들과 함께하는 진정한 기쁨의 순간입니다. 최고의 운입니다.',r:'겉으로는 평화로워 보이지만 내부에 해결되지 않은 갈등이 있을 수 있습니다. 솔직한 대화가 필요합니다.'},
+ career:{u:'직업적 완성과 팀의 조화를 이루는 시기입니다. 함께 이룬 성과에 깊은 보람을 느낍니다.',r:'직업적 완성감이 부족합니다. 자신이 진정으로 원하는 것과 현재 위치를 비교해보세요.'},
+ money:{u:'재정적 안정과 가족 모두의 행복이 함께하는 풍요로운 시기입니다. 나누는 기쁨이 더 큰 풍요를 만듭니다.',r:'재정적 완성을 위해 아직 해결할 숙제가 남아 있습니다. 하나씩 차근차근 해결해나가세요.'}},
+
+/* ── SWORDS ── */
+{n:'Ace of Swords', a:'Swords', num:'Ace', suit:'suit-swords', glyph:'⚔',
+ k:['진실','명료함','돌파구','논리'],
+ love:{u:'진실한 대화와 명확한 소통이 관계를 새로운 단계로 이끕니다. 솔직하게 감정을 표현하세요.',r:'진실을 왜곡하거나 감추면 관계에 균열이 생깁니다. 솔직함만이 해결책입니다.'},
+ career:{u:'날카로운 사고와 논리로 복잡한 문제를 돌파할 수 있습니다. 명확한 커뮤니케이션이 강점입니다.',r:'혼란스러운 정보나 잘못된 판단으로 문제가 생길 수 있습니다. 핵심부터 정리하세요.'},
+ money:{u:'명확한 재정 분석이 좋은 결정을 만듭니다. 복잡하게 얽힌 재정 문제를 논리적으로 해결할 수 있습니다.',r:'재정 판단이 흐려져 있습니다. 모든 정보를 종합하여 냉정하게 분석하세요.'}},
+
+{n:'Two of Swords', a:'Swords', num:'II', suit:'suit-swords', glyph:'⚖',
+ k:['교착','결정 회피','균형','차단'],
+ love:{u:'결정을 내리지 못하고 감정을 차단하고 있습니다. 눈을 뜨고 진실을 직면해야 관계가 앞으로 나아갑니다.',r:'오랫동안 피했던 감정적 결정을 내릴 준비가 됩니다. 두려움을 내려놓고 선택하세요.'},
+ career:{u:'중요한 직업적 결정 앞에서 망설이고 있습니다. 더 많은 정보를 수집하거나 전문가의 조언을 구하세요.',r:'교착 상태에서 벗어나 결단을 내릴 수 있는 힘이 생깁니다. 명확한 행동 계획을 세우세요.'},
+ money:{u:'재정 결정을 미루고 있는 상황입니다. 리스크와 이익을 객관적으로 비교하여 판단을 내리세요.',r:'재정적 교착 상태를 돌파할 결단의 시기가 왔습니다. 필요하면 전문가의 도움을 받으세요.'}},
+
+{n:'Three of Swords', a:'Swords', num:'III', suit:'suit-swords', glyph:'💔',
+ k:['슬픔','마음의 상처','이별','배신'],
+ love:{u:'깊은 슬픔이나 이별의 아픔을 겪는 시기입니다. 충분히 슬퍼해도 됩니다. 상처는 반드시 치유됩니다.',r:'서서히 마음의 상처가 아물기 시작합니다. 용서와 수용이 치유의 문을 엽니다.'},
+ career:{u:'배신감이나 실망스러운 직장 내 상황이 있을 수 있습니다. 감정을 추스르고 냉정하게 다음 단계를 준비하세요.',r:'직업적 상처를 극복하고 새로운 시작을 향해 나아가기 시작합니다.'},
+ money:{u:'예상치 못한 재정 손실이나 배신으로 인한 경제적 타격이 있을 수 있습니다. 법적 대응을 고려하세요.',r:'재정적 회복이 시작됩니다. 손실을 받아들이고 앞으로 나아가는 것이 최선입니다.'}},
+
+{n:'Four of Swords', a:'Swords', num:'IV', suit:'suit-swords', glyph:'🛌',
+ k:['휴식','회복','명상','후퇴'],
+ love:{u:'관계에서 잠시 거리를 두고 자신을 돌아보는 시간이 필요합니다. 회복된 에너지로 더 좋은 파트너가 될 수 있습니다.',r:'너무 오래 혼자 있으면 관계가 차가워질 수 있습니다. 적당한 시간이 지났다면 다시 연결하세요.'},
+ career:{u:'지금은 쉬어야 할 때입니다. 잠시 물러나 에너지를 충전하는 것이 장기적으로 더 큰 성과를 만듭니다.',r:'충분히 쉬었다면 이제 행동할 때입니다. 더 이상 지체하면 기회를 놓칩니다.'},
+ money:{u:'재정 활동을 잠시 줄이고 안정을 취하는 것이 좋습니다. 무리한 투자보다 보유를 선택하세요.',r:'충분한 준비가 끝났습니다. 이제 재정 행동을 다시 시작할 때입니다.'}},
+
+{n:'Five of Swords', a:'Swords', num:'V', suit:'suit-swords', glyph:'⚔',
+ k:['갈등','패배','비겁','승리의 대가'],
+ love:{u:'이기더라도 상대방에게 상처를 주는 승리는 관계를 파괴합니다. 이 싸움이 정말 가치 있는지 생각해보세요.',r:'불필요한 갈등에서 벗어나 화해를 선택할 준비가 됩니다. 용서가 관계를 살립니다.'},
+ career:{u:'승리 지향적 경쟁이 장기적으로 동료 관계를 해칠 수 있습니다. 공정한 게임이 중요합니다.',r:'직장 내 갈등이 해소되고 협력적 관계가 회복되기 시작합니다.'},
+ money:{u:'단기 이익을 위해 원칙을 타협하지 마세요. 불공정한 방법으로 얻은 수익은 결국 더 큰 손실로 돌아옵니다.',r:'재정적 갈등이나 분쟁이 해결되기 시작합니다. 합리적인 타협점을 찾으세요.'}},
+
+{n:'Six of Swords', a:'Swords', num:'VI', suit:'suit-swords', glyph:'⛵',
+ k:['전환','이동','회복','탈출'],
+ love:{u:'힘든 관계 상황에서 벗어나 더 평화로운 방향으로 나아가고 있습니다. 아직 슬프지만 방향은 맞습니다.',r:'전환이 두려워 힘든 상황에 계속 머물고 있습니다. 용기 있는 이동이 더 나은 미래를 만듭니다.'},
+ career:{u:'어려운 직업 환경에서 벗어나 더 나은 상황으로 이동하고 있습니다. 변화가 두렵더라도 앞으로 가세요.',r:'필요한 이직이나 환경 변화를 두려워하며 머뭇거리고 있습니다. 결단을 내릴 때입니다.'},
+ money:{u:'재정적으로 힘든 시기를 지나 서서히 안정으로 향하고 있습니다. 올바른 방향으로 가고 있으니 믿으세요.',r:'재정 위기에서 탈출하지 못하고 있습니다. 전문가의 도움을 받아 구체적인 탈출 계획을 세우세요.'}},
+
+{n:'Seven of Swords', a:'Swords', num:'VII', suit:'suit-swords', glyph:'🗡',
+ k:['기만','전략','절취','회피'],
+ love:{u:'상대방 또는 자신이 솔직하지 않을 가능성이 있습니다. 진실을 직면하는 용기가 관계를 구합니다.',r:'숨겨왔던 진실이 드러나는 시기입니다. 솔직해지는 것이 오히려 관계를 치유합니다.'},
+ career:{u:'영리한 전략이 필요하지만 윤리적 선을 넘지 마세요. 편법은 결국 신뢰를 잃게 만듭니다.',r:'그동안 숨겨진 문제들이 드러나는 시기입니다. 솔직한 태도로 대처하면 신뢰를 회복할 수 있습니다.'},
+ money:{u:'재정 거래에서 숨겨진 정보나 사기 가능성이 있습니다. 계약 전에 반드시 법적 검토를 받으세요.',r:'재정 부정직함이나 숨겨진 비용이 드러나기 시작합니다. 투명한 관리로 신뢰를 회복하세요.'}},
+
+{n:'Eight of Swords', a:'Swords', num:'VIII', suit:'suit-swords', glyph:'🔒',
+ k:['속박','제한','자기 검열','피해의식'],
+ love:{u:'스스로 만든 두려움이 좋은 관계를 차단하고 있습니다. 눈을 뜨고 한 발만 내딛으면 자유로워집니다.',r:'자신을 가두던 믿음에서 벗어나기 시작합니다. 진정한 사랑을 받을 자격이 있다는 것을 아세요.'},
+ career:{u:'능력이 있음에도 스스로 한계를 그어 기회를 놓치고 있습니다. 자기 제한적 사고를 깨트리세요.',r:'오랫동안 자신을 묶어왔던 직업적 두려움에서 해방되기 시작합니다.'},
+ money:{u:'재정적 두려움이나 피해의식이 좋은 기회를 차단하고 있습니다. 전문가와 함께 자신감을 키우세요.',r:'재정적 자기 제한에서 벗어나 더 나은 기회를 탐색하기 시작합니다.'}},
+
+{n:'Nine of Swords', a:'Swords', num:'IX', suit:'suit-swords', glyph:'😰',
+ k:['불안','악몽','두려움','걱정'],
+ love:{u:'관계에 대한 지나친 걱정이나 불안이 실제보다 상황을 악화시켜 보이게 합니다. 현실을 객관적으로 보세요.',r:'불안의 최고조를 지나고 있습니다. 걱정했던 것들이 생각만큼 심각하지 않았음을 알게 됩니다.'},
+ career:{u:'업무에 대한 과도한 불안이 수면을 방해하고 있습니다. 스트레스의 근본 원인을 찾고 해결하세요.',r:'최악의 직업적 불안이 지나가고 있습니다. 한걸음씩 회복하며 앞으로 나아가세요.'},
+ money:{u:'재정에 대한 과도한 걱정이 정신 건강을 해치고 있습니다. 구체적인 계획이 불안을 줄여줍니다.',r:'재정적 불안이 감소하기 시작합니다. 실질적인 개선 행동이 안정감을 가져다줍니다.'}},
+
+{n:'Ten of Swords', a:'Swords', num:'X', suit:'suit-swords', glyph:'🌅',
+ k:['배신','끝','패배','새벽'],
+ love:{u:'고통스러운 관계의 끝. 하지만 이미 최악이 지났습니다. 서서히 새벽이 오고 있습니다. 끝이 시작입니다.',r:'관계가 끝나는 것에 저항하며 더 큰 고통을 자초하고 있습니다. 놓아주는 것이 치유입니다.'},
+ career:{u:'직업적으로 힘든 마무리지만 이 끝이 새로운 시작의 씨앗입니다. 땅에서 일어나 다시 나아가세요.',r:'이미 끝난 상황을 인정하지 않아 회복이 늦어지고 있습니다. 새 페이지를 여는 용기가 필요합니다.'},
+ money:{u:'재정적 손실이나 파산 같은 최악의 상황을 직면하고 있지만 이 바닥이 반등의 시작점입니다.',r:'재정적 패배를 인정하고 처음부터 다시 시작할 용기가 필요합니다. 과거를 놓고 앞을 보세요.'}},
+
+/* ── PENTACLES ── */
+{n:'Ace of Pentacles', a:'Pentacles', num:'Ace', suit:'suit-pents', glyph:'⬡',
+ k:['새로운 기회','번영','물질','안정'],
+ love:{u:'물질적 안정이 관계의 토대를 만듭니다. 안정적인 기반을 갖춘 진지한 관계가 시작될 수 있습니다.',r:'물질적인 면에 너무 집중하여 감정적 연결을 놓치고 있습니다. 균형이 필요합니다.'},
+ career:{u:'새로운 직업 기회나 수익성 있는 사업이 시작됩니다. 현실적이고 구체적인 계획으로 접근하세요.',r:'좋은 기회가 있음에도 행동하지 않아 지나치고 있습니다. 기회의 창이 열려 있을 때 움직이세요.'},
+ money:{u:'새로운 재정 기회의 씨앗이 심어집니다. 현실적인 계획과 꾸준한 노력이 풍요를 만들어냅니다.',r:'좋은 재정 기회를 놓치고 있거나 재정 출발이 지연되고 있습니다. 지금 바로 시작하세요.'}},
+
+{n:'Two of Pentacles', a:'Pentacles', num:'II', suit:'suit-pents', glyph:'⟳',
+ k:['균형','조율','변화 적응','우선순위'],
+ love:{u:'여러 역할 사이에서 관계도 균형 있게 유지하려는 시기입니다. 파트너에게 충분한 시간을 주고 있나요?',r:'균형이 무너져 관계가 소홀해질 수 있습니다. 우선순위를 재정비하여 파트너에게 집중하세요.'},
+ career:{u:'여러 업무를 동시에 저글링하고 있지만 유연하게 대처하면 모두 잘 해낼 수 있습니다.',r:'과부하로 인해 모든 일이 어중간해질 위험이 있습니다. 중요한 것부터 집중하세요.'},
+ money:{u:'수입과 지출을 균형 있게 관리하는 것이 핵심입니다. 현금 흐름을 면밀히 모니터링하세요.',r:'재정 균형이 무너지고 있습니다. 예산을 재검토하고 불필요한 지출을 즉시 줄이세요.'}},
+
+{n:'Three of Pentacles', a:'Pentacles', num:'III', suit:'suit-pents', glyph:'🔨',
+ k:['협업','숙련','팀워크','인정'],
+ love:{u:'팀으로서 함께 무언가를 만들어가는 관계가 강화됩니다. 서로의 강점을 인정하고 협력하세요.',r:'역할 분담이 불균형하거나 노력을 인정받지 못하고 있습니다. 솔직한 대화가 필요합니다.'},
+ career:{u:'전문 기술이 인정받고 협업에서 빛을 발하는 시기입니다. 팀과 함께할 때 더 큰 것을 이룹니다.',r:'팀 내 갈등이나 의사소통 문제가 성과를 방해합니다. 명확한 역할 정의가 필요합니다.'},
+ money:{u:'전문 서비스나 기술에 대한 정당한 보상을 받는 시기입니다. 가치 있는 투자에는 적극적으로 지원하세요.',r:'협업 투자에서 기대와 다른 결과가 나올 수 있습니다. 계약 조건을 명확히 하세요.'}},
+
+{n:'Four of Pentacles', a:'Pentacles', num:'IV', suit:'suit-pents', glyph:'🔒',
+ k:['안정','집착','통제','보안'],
+ love:{u:'안정을 원하지만 지나친 집착이 파트너에게 압박이 될 수 있습니다. 신뢰와 개방성을 키우세요.',r:'쥐고 있던 것을 놓아줄 준비가 됩니다. 통제를 내려놓으면 관계가 더 자유로워집니다.'},
+ career:{u:'직업 안정을 추구하는 것은 좋지만 변화를 두려워하면 성장이 멈춥니다. 적당한 모험심도 필요합니다.',r:'지나친 직업적 보수주의에서 벗어나 새로운 기회에 열린 마음을 갖기 시작합니다.'},
+ money:{u:'재정 보안에 집중하는 좋은 시기지만 지나친 인색함은 오히려 기회를 막습니다. 전략적 투자도 병행하세요.',r:'재정 집착을 내려놓고 더 자유로운 재정 흐름을 허용하기 시작합니다.'}},
+
+{n:'Five of Pentacles', a:'Pentacles', num:'V', suit:'suit-pents', glyph:'❄',
+ k:['빈곤','역경','고립','불안'],
+ love:{u:'경제적 어려움이 관계에 스트레스를 줄 수 있습니다. 함께 어려움을 극복하면 관계가 더 단단해집니다.',r:'물질적 역경을 함께 이겨내며 관계가 회복되기 시작합니다. 함께라는 것이 힘이 됩니다.'},
+ career:{u:'힘든 직업 상황이지만 완전히 혼자가 아닙니다. 주변의 도움을 구하거나 지원 시스템을 활용하세요.',r:'직업적 역경이 서서히 나아지기 시작합니다. 포기하지 않은 것이 결국 빛을 발합니다.'},
+ money:{u:'재정적으로 가장 힘든 시기입니다. 지금 당장 도움을 구하고 가장 기본적인 것에 집중하세요.',r:'재정 회복의 신호가 보이기 시작합니다. 작은 개선도 소중히 여기고 계속 나아가세요.'}},
+
+{n:'Six of Pentacles', a:'Pentacles', num:'VI', suit:'suit-pents', glyph:'⚖',
+ k:['관대함','나눔','균형','자선'],
+ love:{u:'주고받는 균형이 건강한 관계의 핵심입니다. 너무 주기만 하거나 받기만 하는 것은 아닌지 점검하세요.',r:'관계의 불균형이 지속되고 있습니다. 더 공평한 역할 분담에 대해 솔직하게 이야기하세요.'},
+ career:{u:'관대함이 장기적으로 더 큰 보상으로 돌아옵니다. 지식과 경험을 나누면 신뢰와 명성이 쌓입니다.',r:'직장 내 불공정한 대우가 있습니다. 자신의 가치를 명확히 주장하세요.'},
+ money:{u:'여유가 있다면 적극적으로 나누세요. 에너지는 순환할 때 더 큰 풍요로 돌아옵니다.',r:'일방적으로 주기만 하거나 빚이 쌓이는 상황입니다. 재정 균형을 회복하는 것이 시급합니다.'}},
+
+{n:'Seven of Pentacles', a:'Pentacles', num:'VII', suit:'suit-pents', glyph:'🌱',
+ k:['인내','투자','성장 확인','방향 재설정'],
+ love:{u:'천천히 자라는 사랑의 씨앗을 돌보고 있습니다. 조급하지 않게 기다리면 아름다운 결실이 옵니다.',r:'관계에 쏟은 노력이 기대한 만큼의 성과를 내지 못하고 있습니다. 방향을 재점검하세요.'},
+ career:{u:'장기 투자가 천천히 결실을 맺고 있습니다. 지금 보이는 성과를 바탕으로 다음 단계를 계획하세요.',r:'시간과 에너지를 잘못된 방향에 투자하고 있을 수 있습니다. 전략을 다시 검토하세요.'},
+ money:{u:'장기 투자가 성과를 내기 시작합니다. 조급해하지 말고 포트폴리오를 점검하며 인내하세요.',r:'투자 수익이 기대에 못 미칩니다. 잘못된 투자를 정리하고 더 나은 선택을 고려하세요.'}},
+
+{n:'Eight of Pentacles', a:'Pentacles', num:'VIII', suit:'suit-pents', glyph:'🔨',
+ k:['숙련','헌신','기술 발전','집중'],
+ love:{u:'관계에 꾸준한 노력과 헌신을 기울이고 있습니다. 매일 작은 관심이 큰 사랑을 만들어냅니다.',r:'업무에 과도하게 집중하여 관계가 소홀해질 수 있습니다. 파트너와 보내는 시간도 소중히 하세요.'},
+ career:{u:'꾸준한 기술 향상과 성실한 업무 태도가 전문가로서의 명성을 쌓아갑니다. 계속 갈고닦으세요.',r:'완벽주의 또는 의미 없는 반복 작업이 성장을 방해합니다. 더 효율적인 방법을 찾아보세요.'},
+ money:{u:'기술을 기반으로 한 꾸준한 수입이 재정 안정을 만듭니다. 자기계발에 대한 투자는 최고의 수익입니다.',r:'노력 대비 수익이 부족한 상황입니다. 수익 모델을 재검토하거나 새로운 스킬을 습득하세요.'}},
+
+{n:'Nine of Pentacles', a:'Pentacles', num:'IX', suit:'suit-pents', glyph:'🌿',
+ k:['독립','자급자족','풍요','세련미'],
+ love:{u:'자립적이고 자신감 넘치는 모습이 매력적으로 빛납니다. 혼자서도 완전한 나로서 사랑을 맞이하세요.',r:'물질적 풍요에 집중한 나머지 감정적 연결이 부족할 수 있습니다. 내면의 풍요도 가꾸세요.'},
+ career:{u:'독립적인 작업 능력과 전문성이 최고조에 달합니다. 프리랜서나 창업에 매우 유리한 시기입니다.',r:'자급자족에 집착하여 네트워크나 협업의 기회를 차단하고 있습니다. 도움을 받아들이세요.'},
+ money:{u:'스스로 이루어낸 재정적 풍요의 시기입니다. 자립적 수입원과 안정적 자산이 자랑스러운 성과를 만듭니다.',r:'겉으로 보이는 풍요와 실제 재정 상태 사이의 간극이 있을 수 있습니다. 재무 상태를 정확히 파악하세요.'}},
+
+{n:'Ten of Pentacles', a:'Pentacles', num:'X', suit:'suit-pents', glyph:'🏡',
+ k:['유산','안정','가족','장기적 성공'],
+ love:{u:'세대를 잇는 안정적인 사랑과 가정의 행복. 오래 지속될 관계의 기반이 완성된 시기입니다.',r:'가족 내 갈등이나 재정 문제가 관계에 영향을 미칩니다. 가족 전체가 함께 해결해나가야 합니다.'},
+ career:{u:'직업적 유산을 남길 만한 성과를 이루는 시기입니다. 후임자 양성이나 지식 전수에도 관심을 두세요.',r:'가족이나 조직에 대한 책임감이 자신의 커리어를 제한하고 있습니다. 균형을 찾는 것이 필요합니다.'},
+ money:{u:'세대를 넘나드는 재정적 풍요와 안정. 부동산이나 장기 자산 구축에 매우 좋은 시기입니다.',r:'가족 재정 갈등이나 유산 분쟁이 있을 수 있습니다. 명확한 재정 계획과 문서화가 필요합니다.'}}
+
+]; /* END TAROT DATA */
+
+/* ── Suit configs ── */
+const SUIT_CONFIG = {
+  'suit-major':  { glyph: null, label: 'Major Arcana', color: '#c39bd3' },
+  'suit-wands':  { glyph: null, label: 'Wands',        color: '#e8a060' },
+  'suit-cups':   { glyph: null, label: 'Cups',         color: '#7ab4e0' },
+  'suit-swords': { glyph: null, label: 'Swords',       color: '#b0c8e8' },
+  'suit-pents':  { glyph: null, label: 'Pentacles',    color: '#7ad4a0' }
+};
+
+let card = null, rev = false;
+
+/* ── Draw Card ── */
+function drawCard() {
+  card = TAROT[Math.floor(Math.random() * TAROT.length)];
+  rev  = Math.random() < 0.3;
+
+  const flipper  = document.getElementById('flipper');
+  const cardFront = document.getElementById('cardFront');
+
+  // Reset state
+  flipper.classList.remove('flipped');
+  document.getElementById('sharePanel').style.display = 'none';
+  document.getElementById('result').classList.remove('visible');
+
+  // Update card front face
+  // suit class
+  cardFront.className = `card-face card-front ${card.suit}`;
+
+  document.getElementById('cfGlyph').textContent = card.glyph;
+  document.getElementById('cfNum').textContent   = card.num;
+  document.getElementById('cfName').textContent  = card.n;
+  document.getElementById('cfSuit').textContent  = SUIT_CONFIG[card.suit].label;
+  document.getElementById('cfRevBadge').innerHTML = rev
+    ? '<div class="cf-rev-badge">↓ 역방향</div>' : '';
+
+  // Flip with short delay
+  setTimeout(() => {
+    flipper.classList.add('flipped');
+    setTimeout(() => { burst(); showResult(); }, 500);
+  }, 150);
+}
+
+/* ── Particle burst ── */
+function burst() {
+  const c = document.getElementById('particles');
+  c.innerHTML = '';
+  for (let i = 0; i < 16; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const angle = (i / 16) * Math.PI * 2;
+    const dist  = 80 + Math.random() * 90;
+    p.style.cssText = `left:50%;top:50%;`
+      + `--tx:${Math.cos(angle)*dist}px;--ty:${Math.sin(angle)*dist}px;`
+      + `background:${Math.random() > .5 ? '#d4af37' : '#c39bd3'};`
+      + `animation-delay:${Math.random()*.2}s`;
+    c.appendChild(p);
+  }
+  setTimeout(() => c.innerHTML = '', 1200);
+}
+
+/* ── Show Result ── */
+function showResult() {
+  if (!card) return;
+
+  document.getElementById('rArcana').textContent = `— ${card.a.toUpperCase()} —`;
+  document.getElementById('rName').textContent   = card.n;
+  document.getElementById('rRevTag').innerHTML   = rev
+    ? '<div class="rc-rev-tag">↓ 역방향 (Reversed)</div>' : '';
+  document.getElementById('rKeys').innerHTML     =
+    card.k.map(k => `<span class="kw">${k}</span>`).join('');
+
+  // Fortune sections
+  const sections = [
+    { key: 'love',   icon: '💕', label: '연애운',           cls: 'love'   },
+    { key: 'career', icon: '📋', label: '관운 (직장/학업)',  cls: 'career' },
+    { key: 'money',  icon: '💰', label: '재물운',           cls: 'money'  }
+  ];
+
+  document.getElementById('fortuneSections').innerHTML = sections.map(s => {
+    const data = card[s.key];
+    const main = rev ? data.r : data.u;
+    const sub  = rev ? data.u : data.r;
+    return `
+      <div class="fortune-item">
+        <div class="fi-header">
+          <span class="fi-icon">${s.icon}</span>
+          <span class="fi-title ${s.cls}">${s.label}</span>
+        </div>
+        <div class="fi-text">${main}</div>
+        ${rev ? `<div class="fi-rev"><span class="fi-rev-label">UPRIGHT</span>${sub}</div>` : ''}
+      </div>`;
+  }).join('');
+
+  document.getElementById('sharePanel').style.display = 'flex';
+
+  setTimeout(() => {
+    const r = document.getElementById('result');
+    r.classList.add('visible');
+    r.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
+}
+
+/* ── Save as image ── */
+async function saveImg() {
+  if (!card) return showToast('먼저 카드를 뽑아주세요');
+  showToast('이미지 생성 중...');
+
+  // Fill capture div
+  document.getElementById('ctCname').textContent = card.n;
+  document.getElementById('ctCsub').textContent  = SUIT_CONFIG[card.suit].label;
+  document.getElementById('ctRev').textContent   = rev ? '↓ 역방향 (Reversed)' : '';
+  document.getElementById('ctKeys').innerHTML    =
+    card.k.map(k => `<span class="ct-k">${k}</span>`).join('');
+  document.getElementById('ctLove').textContent   = rev ? card.love.r   : card.love.u;
+  document.getElementById('ctCareer').textContent = rev ? card.career.r : card.career.u;
+  document.getElementById('ctMoney').textContent  = rev ? card.money.r  : card.money.u;
+
+  const target = document.getElementById('ct');
+  target.style.left = '0';
+  target.style.zIndex = '9999';
+
+  try {
+    await new Promise(r => setTimeout(r, 400));
+    const canvas = await html2canvas(target, {
+      backgroundColor: '#0a0612', scale: 2,
+      useCORS: false, allowTaint: true
+    });
+    target.style.left = '-9999px';
+    target.style.zIndex = '-1';
+
+    canvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `tarot_signal-${card.n.replace(/ /g, '-').toLowerCase()}.png`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('이미지 저장 완료! 📸');
+    }, 'image/png');
+  } catch (e) {
+    target.style.left = '-9999px';
+    showToast('저장 중 오류가 발생했습니다');
+  }
+}
+
+/* ── Share ── */
+async function shareIt() {
+  if (!card) return showToast('먼저 카드를 뽑아주세요');
+  const text = [
+    `✦ tarot_signal 리딩 ✦`,
+    ``,
+    `카드: ${card.n}${rev ? ' (역방향)' : ''}`,
+    ``,
+    `💕 연애운`,
+    rev ? card.love.r : card.love.u,
+    ``,
+    `📋 관운`,
+    rev ? card.career.r : card.career.u,
+    ``,
+    `💰 재물운`,
+    rev ? card.money.r : card.money.u,
+    ``,
+    `#타로 #tarot_signal #유니버셜웨이트`
+  ].join('\n');
+
+  if (navigator.share) {
+    try { await navigator.share({ title: 'tarot_signal 리딩', text }); showToast('공유 완료!'); }
+    catch (e) { copyText(text); }
+  } else { copyText(text); }
+}
+
+function copyText(t) {
+  navigator.clipboard.writeText(t)
+    .then(() => showToast('클립보드에 복사됐어요! 📋'))
+    .catch(() => showToast('복사에 실패했습니다'));
+}
+
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+</script>
+</body>
+</html>
